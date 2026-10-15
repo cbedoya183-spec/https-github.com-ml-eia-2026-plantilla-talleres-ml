@@ -1,0 +1,15 @@
+# Proyecto final de Machine Learning — retrasos de vuelos en EE.UU.
+# Instalar con:  pip install -r requirements.txt  &&  pip install -e .
+
+pandas>=2.0          # tablas de datos
+numpy>=1.24          # cálculo numérico
+scikit-learn>=1.4    # Pipeline, modelos, validación y métricas
+xgboost>=2.0         # modelo XGBoost (sesión 7)
+matplotlib>=3.7      # gráficas
+seaborn>=0.12        # gráficas estadísticas
+pyarrow>=14.0        # lectura/escritura rápida en formato Parquet
+joblib>=1.3          # guardar el modelo entrenado
+jupyter>=1.0         # abrir y correr el notebook
+ipykernel>=6.25      # kernel de Python para Jupyter
+kaggle>=1.6          # descarga de los datos por API (solo si no tienes los CSV)
+pytest>=7.0          # prueba de humo con datos simulados

@@ -1,0 +1,4 @@
+# Indica a pip con qué herramienta se instala el paquete (los detalles están en setup.py).
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
