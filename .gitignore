@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------
+# Entornos virtuales (cada quien crea el suyo con python -m venv)
+# ---------------------------------------------------------------
+.venv/
+venv/
+env/
+
+# ---------------------------------------------------------------
+# Cachés de Python y de Jupyter
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ---------------------------------------------------------------
+# Datos: los 12 CSV crudos pesan ~80 MB cada uno -> NO van a Git.
+# Se descargan con: python src/data/download_data.py
+# Las carpetas se conservan gracias al archivo .gitkeep
+# ---------------------------------------------------------------
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# ---------------------------------------------------------------
+# Modelos serializados: se regeneran al correr el notebook.
+# Las tablas pequeñas (.csv / .txt) de models/ SÍ se versionan.
+# ---------------------------------------------------------------
+models/*.joblib
+models/*.pkl
+
+# ---------------------------------------------------------------
+# IDE y sistema operativo
+# ---------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
