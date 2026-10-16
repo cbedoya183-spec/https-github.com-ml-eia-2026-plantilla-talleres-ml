@@ -38,7 +38,7 @@ def test_de_punta_a_punta(tmp_path):
     assert X_train.index.max() < X_test.index.min()                 # prueba = futuro
 
     modelos = definir_modelos(y_train, rapido=True)
-    modelos = {k: modelos[k] for k in ["Línea base", "Regresión logística", "Árbol de decisión"]}
+    modelos = {k: modelos[k] for k in ["Línea base", "Regresión logística", "Árbol de decisión", "Red neuronal (MLP)"]}
     tabla_cv = comparar_modelos(modelos, X_train, y_train)
     campeon, _ = elegir_campeon(tabla_cv)
 

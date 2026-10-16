@@ -31,6 +31,7 @@ En equipos de 4 el profesor escoge quién expone, así que cualquiera debe poder
 ## 4 · El código corriendo (≈3 min) — notebook §5
 - Partición **temporal** (no aleatoria): "entrenar con 2026 para predecir 2025 sería trampa".
 - La celda del `for` que valida todos los modelos con el **mismo `TimeSeriesSplit`**: dejar que se vea la salida en vivo.
+- **Red neuronal (sesión 8):** arquitectura 90 → 32 → 16 → 1, ReLU, backpropagation + Adam; mostrar la curva de aprendizaje y la parada temprana (§6.2).
 - Umbral elegido por F1 en el último pliegue (el 0,50 no es decisión de negocio).
 
 ## 5 · Métricas y modelo elegido (≈3 min) — notebook §5.4 a §6
@@ -46,6 +47,9 @@ En equipos de 4 el profesor escoge quién expone, así que cualquiera debe poder
 | ¿Por qué ROC-AUC y no exactitud? | Clases desbalanceadas: la línea base ya tiene 78 % de exactitud sin detectar nada. AUC mide el ordenamiento del riesgo. |
 | ¿Por qué no K-fold aleatorio? | Metería meses futuros en el entrenamiento; `TimeSeriesSplit` siempre valida con lo que sigue. |
 | ¿Por qué `class_weight="balanced"`? | Sin él, el modelo casi nunca predice "retraso" (22 % de la clase). |
-| ¿Por qué no KNN / SVM / red neuronal? | Costo de predicción con 57 mil filas en one-hot; la frontera lineal ya está en la logística y la no lineal en los ensambles. |
+| ¿Por qué no KNN / SVM? | Costo de predicción con 57 mil filas en one-hot; la frontera lineal ya está en la logística y la no lineal en los ensambles y la red. |
+| ¿Cómo funciona la red neuronal? | Cada neurona: suma ponderada + sesgo → ReLU. Capas 32 y 16, salida sigmoide = probabilidad. Pesos aprendidos con backpropagation (regla de la cadena) + Adam minimizando la entropía cruzada. |
+| ¿Por qué la red no ganó? | En datos tabulares con pocas columnas los árboles y la logística suelen igualarla; además es una caja negra y su AUC varía más entre pliegues. Por la regla de simplicidad se prefiere el modelo más simple. |
+| ¿Cómo evitan que la red memorice? | Regularización L2 (`alpha`), parada temprana con el 10 % del entrenamiento y una arquitectura pequeña (~3.500 parámetros). |
 | ¿La prueba se usó para elegir algo? | No: modelo, umbral e hiperparámetros salen solo del entrenamiento. |
 | ¿Por qué 1 % y no todo? | Para correr en vivo; la muestra conserva el peso y la tasa de retraso de cada mes (tabla `muestra_vs_mes`). |
