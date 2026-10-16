@@ -4,7 +4,7 @@ experiment.py — PASO 5: comparar varios modelos con la MISMA vara.
 Contiene:
 - separar_temporal ......... entrenamiento = pasado, prueba = futuro (último 25 %)
 - regla_manual ............. lo que haría alguien sin ML (punto de comparación)
-- definir_modelos .......... línea base + 5 familias de modelos
+- definir_modelos .......... línea base + 6 familias de modelos (incluye red neuronal)
 - elegir_umbral ............ umbral que maximiza el F1 del retraso
 - validar_modelo ........... validación cruzada temporal de un modelo
 - comparar_modelos ......... la tabla con todos los modelos
@@ -22,6 +22,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassif
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit, cross_val_score
+from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
@@ -113,12 +114,29 @@ def definir_modelos(y_train: pd.Series, rapido: bool = False) -> dict:
             subsample=0.8, colsample_bytree=0.8, reg_lambda=1.0,
             scale_pos_weight=peso_positivos, eval_metric="logloss",
             n_jobs=-1, random_state=SEMILLA),
+
+        # Sesión 8 · Red neuronal (perceptrón multicapa, MLP).
+        # Capa de entrada (≈90 columnas tras el one-hot) -> 32 neuronas -> 16 neuronas -> 1 salida.
+        # - activation="relu": cada neurona calcula max(0, suma ponderada + sesgo) -> curvas, no solo rectas.
+        # - La salida usa la sigmoide (logística) y da la probabilidad de retraso.
+        # - Los pesos se aprenden con backpropagation + Adam (descenso de gradiente con impulso).
+        # - alpha: penalización L2 sobre los pesos (como Ridge), evita memorizar.
+        # - early_stopping: aparta el 10 % del entrenamiento y para cuando la pérdida en
+        #   ese 10 % deja de mejorar 10 épocas seguidas (otra defensa contra el sobreajuste).
+        # - El escalado (StandardScaler del Pipeline) es OBLIGATORIO: sin él el gradiente se desbalancea.
+        # MLPClassifier no tiene class_weight: el desbalance se compensa con el UMBRAL elegido por F1.
+        "Red neuronal (MLP)": MLPClassifier(
+            hidden_layer_sizes=(32, 16), activation="relu", solver="adam",
+            alpha=1e-3, learning_rate_init=1e-3, batch_size=256,
+            max_iter=60 if rapido else 200, early_stopping=True,
+            validation_fraction=0.1, n_iter_no_change=10, random_state=SEMILLA),
     }
 
 
 # Orden de simplicidad (menor = más fácil de explicar y de entrenar).
 SIMPLICIDAD = {"Línea base": 0, "Regresión logística": 1, "Árbol de decisión": 2,
-               "Random Forest": 3, "Gradient boosting": 4, "XGBoost": 5}
+               "Random Forest": 3, "Gradient boosting": 4, "XGBoost": 5,
+               "Red neuronal (MLP)": 6}   # la red es la menos interpretable (caja negra)
 
 
 # -----------------------------------------------------------------------------
@@ -215,6 +233,8 @@ REJILLAS = {
     "Random Forest": {"modelo__max_depth": [8, 14], "modelo__min_samples_leaf": [10, 40]},
     "Gradient boosting": {"modelo__learning_rate": [0.05, 0.1], "modelo__max_leaf_nodes": [15, 31]},
     "XGBoost": {"modelo__max_depth": [4, 6], "modelo__learning_rate": [0.05, 0.1]},
+    "Red neuronal (MLP)": {"modelo__hidden_layer_sizes": [(32,), (32, 16)],   # 1 o 2 capas ocultas
+                           "modelo__alpha": [1e-4, 1e-2]},                    # regularización L2
 }
 
 

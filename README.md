@@ -53,11 +53,12 @@ Entran 8 columnas originales del itinerario y se **crean 13**: hora de salida/ll
 - **Partición temporal:** entrenamiento = 75 % más antiguo (jun-2025 → mar-2026); **prueba = 25 % más reciente** (mar → may-2026), que no elige nada.
 - **Validación:** `TimeSeriesSplit` de 3 pliegues dentro del entrenamiento, **igual para todos**. Métrica de elección: **ROC-AUC**.
 - **Umbral:** se elige en el último pliegue maximizando el **F1 del retraso** (con `class_weight="balanced"` el 0,50 no es el punto de operación).
-- **Familias:** línea base, regla manual, regresión logística (S3), árbol (S4), Random Forest y gradient boosting (S5), XGBoost (S7). KNN/SVM-kernel no entran por costo de predicción con ~57 mil filas en one-hot; la red neuronal no aporta una frontera distinta del boosting en datos tabulares de este tamaño.
+- **Familias:** línea base, regla manual, regresión logística (S3), árbol (S4), Random Forest y gradient boosting (S5), XGBoost (S7) y **red neuronal MLP (S8)**. KNN/SVM-kernel no entran por costo de predicción con ~57 mil filas en one-hot.
+- **Red neuronal (S8):** perceptrón multicapa `entrada (≈90) → 32 → 16 → 1`, activación ReLU, salida sigmoide, entrenado con *backpropagation* + Adam; regularización L2 (`alpha`) y parada temprana. Usa las columnas escaladas del Pipeline y, como no admite `class_weight`, el desbalance se compensa con el umbral elegido por F1. El notebook muestra su número de parámetros y su curva de aprendizaje.
 - **Regla de elección:** mayor ROC-AUC de validación; si un modelo más simple queda a menos de **0,01**, gana el simple. Hiperparámetros: 4 combinaciones, `TimeSeriesSplit(2)`, se adoptan solo si ganan **≥ 0,005**.
 
 ## 6 · Resultados de referencia (corrida del equipo con los datos reales)
-Estos números son de la corrida del equipo con los 12 CSV reales (rama `Sebastian/Planteamiento`), con la **misma metodología** que implementa esta rama. Al ejecutar el notebook con los CSV en `data/raw/` se regeneran en `models/metrics_comparison.csv`.
+Estos números son de la corrida del equipo con los 12 CSV reales (rama `Sebastian/Planteamiento`), con la **misma metodología** que implementa esta rama. La red neuronal es un modelo adicional de esta versión: su fila se llena al ejecutar el notebook. Al ejecutar el notebook con los CSV en `data/raw/` se regeneran en `models/metrics_comparison.csv`.
 
 | Modelo | ROC-AUC validación | Umbral | Precisión | Recall | F1 retraso | ROC-AUC prueba |
 |---|---:|---:|---:|---:|---:|---:|
@@ -68,6 +69,9 @@ Estos números son de la corrida del equipo con los 12 CSV reales (rama `Sebasti
 | Random Forest | 0,6259 | 0,40 | 0,2713 | 0,7880 | 0,4037 | 0,6399 |
 | Gradient boosting | 0,6273 | 0,40 | 0,2709 | 0,7923 | 0,4038 | 0,6374 |
 | XGBoost | 0,6285 | 0,40 | 0,2661 | 0,8271 | 0,4026 | 0,6374 |
+| Red neuronal (MLP) ¹ | — | — | — | — | — | — |
+
+¹ Modelo agregado en esta versión: sus números se generan al ejecutar el notebook con los CSV reales.
 
 **Elección argumentada:** XGBoost tiene el mayor AUC de validación (0,6285), pero la logística queda a 0,0092 (dentro del margen de 0,01, y menor que la desviación entre pliegues, 0,0253) y es **más simple, rápida e interpretable** → se elige la **regresión logística**. En la prueba detecta el **81 % de los retrasos** y su F1 (0,407) supera claramente a la regla manual (0,280). El ajuste de hiperparámetros no ganó ≥ 0,005, así que se conserva la configuración base.
 
